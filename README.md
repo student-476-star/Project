@@ -9,10 +9,10 @@ database storage.
 
 # 1. Introduction
 
-NetGuard-IDS is a simplified IDS similar to Snort/Suricata.\
+NetGuard-IDS is a simplified IDS similar to Snort/Suricata.
 It captures packets from a selected network interface, analyzes them
 using signature rules, logs alerts, and displays them live in a
-user-friendly GUI.\
+user-friendly GUI.
 It is ideal for learning, research, academic submissions, and security
 demonstrations.
 
@@ -20,107 +20,86 @@ demonstrations.
 
 # 2. Objective
 
--   Capture live network packets\
--   Detect suspicious activity based on signatures\
--   Generate alerts for rule matches\
--   Store alerts persistently\
--   Display alerts in a real-time GUI\
+-   Capture live network packets
+-   Detect suspicious activity based on signatures
+-   Generate alerts for rule matches
+-   Store alerts persistently
+-   Display alerts in a real-time GUI
 -   Export alerts for further analysis
 
 ------------------------------------------------------------------------
 
 # 3. Key Features
 
--   ✔ Real-time network packet capture\
--   ✔ Signature-based detection engine\
--   ✔ Alerts saved in H2 database\
--   ✔ Live Swing dashboard\
--   ✔ CSV exporting\
+-   ✔ Real-time network packet capture
+-   ✔ Signature-based detection engine
+-   ✔ Alerts saved in H2 database
+-   ✔ Live Swing dashboard
+-   ✔ CSV exporting
 -   ✔ Modular and extendable codebase
 
 ------------------------------------------------------------------------
 
 # 4. Architecture Overview
-
-              +-----------------------+
-              |      rules.json       |
-              +-----------+-----------+
-                          |
-                          v
-    +-------------+   +-----------+    +------------+
-    | PcapCaptor  |-->| Signature |--> | Alert      |
-    | (Packets)   |   | Engine    |    | Generator  |
-    +-------------+   +-----------+    +------------+
-            |               |                 |
-            |               v                 |
-            |        +--------------+         |
-            |        | Alert Object |---------+
-            |        +-------+------+
-            |                |
-            v                v
-    +------------+      +------------+
-    | H2 Database|      | Swing UI   |
-    | AlertDao   |      | Live Table |
-    +------------+      +------------+
-
+![alt text](flow.png)
 ------------------------------------------------------------------------
 
 # 5. Project Modules
 
 ### 5.1 PcapCaptor
 
--   Captures network packets\
--   Extracts IP, ports, payload\
+-   Captures network packets
+-   Extracts IP, ports, payload
 -   Forwards packets to SignatureEngine
 
 ### 5.2 SignatureEngine
 
--   Receives list of rules\
--   Matches packets with patterns\
+-   Receives list of rules
+-   Matches packets with patterns
 -   Generates alerts
 
 ### 5.3 Rule Model
 
 Represents a detection rule with:
 
--   id\
--   name\
--   pattern\
--   srcPort\
+-   id
+-   name
+-   pattern
+-   srcPort
 -   dstPort
 
 ### 5.4 Alert Model
 
 Contains:
 
--   ID\
--   Rule ID\
--   Rule name\
--   Source/Destination info\
--   Timestamp\
+-   ID
+-   Rule ID
+-   Rule name
+-   Source/Destination info
+-   Timestamp
 -   Payload snippet
 
 ### 5.5 AlertDao
 
--   Inserts alerts into H2 database\
+-   Inserts alerts into H2 database
 -   Creates schema automatically
 
 ### 5.6 Swing UI
 
--   Displays real-time alerts in table\
+-   Displays real-time alerts in table
 -   Allows CSV export
 
 ------------------------------------------------------------------------
 
 # 6. Main Program Flow (Main.java)
 
-1.  Parse network interface from program argument\
-2.  Load rules from `rules.json`\
-3.  Initialize SignatureEngine\
-4.  Setup H2 database\
-5.  Start Swing GUI\
-6.  Begin packet capture\
-7.  Display and store alerts\
+1.  Parse network interface from program argument
+2.  Load rules from `rules.json`
+3.  Initialize SignatureEngine
+4.  Setup H2 database
+5.  Start Swing GUI
+6.  Begin packet capture
+7.  Display and store alerts
 8.  Graceful shutdown
 
 ------------------------------------------------------------------------
@@ -141,26 +120,14 @@ Example:
 ]
 ```
 
--   `pattern` is matched inside payload\
+-   `pattern` is matched inside payload
 -   Ports = 0 means "ignore port"
 
 ------------------------------------------------------------------------
 
 # 8. Database Schema
 
-  Column           Type       Description
-  ---------------- ---------- ----------------------
-  id               INT AUTO   Primary key
-  ruleId           INT        ID of matched rule
-  ruleName         VARCHAR    Rule name
-  srcIp            VARCHAR    Source IP
-  srcPort          INT        Source port
-  dstIp            VARCHAR    Destination IP
-  dstPort          INT        Destination port
-  timestamp        LONG       Epoch time
-  payloadSnippet   VARCHAR    Payload text snippet
-
-  : alerts
+  ![alt text](database.png)
 
 ------------------------------------------------------------------------
 
@@ -168,9 +135,9 @@ Example:
 
 ### GUI Features:
 
--   JTable showing:\
+-   JTable showing:
     `ID | Rule ID | Rule Name | Src IP | Src Port | Dst IP | Dst Port | Timestamp | Snippet`
--   Auto-sorting enabled\
+-   Auto-sorting enabled
 -   Export CSV button
 
 ------------------------------------------------------------------------
@@ -179,10 +146,10 @@ Example:
 
 ### Requirements:
 
--   Java 17 or above\
--   Maven\
+-   Java 17 or above
+-   Maven
 -   PCAP library:
-    -   Windows → npcap\
+    -   Windows → npcap
     -   Linux → libpcap
 
 ------------------------------------------------------------------------
@@ -203,7 +170,7 @@ Linux:
 
     ip link show
 
-Windows:\
+Windows:
 Use npcap interface list.
 
 Run IDS:
@@ -222,34 +189,34 @@ GUI → "Export CSV" button saves file to:
 
 # 14. Packet Capturing Workflow
 
-1.  Open NIC in promiscuous mode\
-2.  Capture packets continuously\
-3.  Parse IP, ports, payload\
-4.  Send payload to SignatureEngine\
+1.  Open NIC in promiscuous mode
+2.  Capture packets continuously
+3.  Parse IP, ports, payload
+4.  Send payload to SignatureEngine
 5.  Trigger alert on match
 
 ------------------------------------------------------------------------
 
 # 15. Signature Engine Workflow
 
-1.  Receive payload\
-2.  Loop rules\
-3.  Check port match\
-4.  Check pattern match\
-5.  Create alert\
+1.  Receive payload
+2.  Loop rules
+3.  Check port match
+4.  Check pattern match
+5.  Create alert
 6.  Add to DB + GUI
 
 ------------------------------------------------------------------------
 
 # 16. Future Enhancements
 
--   Severity levels for rules\
--   Regex-based rule matching\
--   Snort-rule compatibility\
--   Protocol-based filters\
--   Real-time charts\
--   REST API for alert retrieval\
--   Auto rule updates\
+-   Severity levels for rules
+-   Regex-based rule matching
+-   Snort-rule compatibility
+-   Protocol-based filters
+-   Real-time charts
+-   REST API for alert retrieval
+-   Auto rule updates
 -   TLS fingerprinting
 
 ------------------------------------------------------------------------
