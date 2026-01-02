@@ -79,10 +79,6 @@ Contains:
 -   Timestamp
 -   Payload snippet
 
-### 5.5 AlertDao
-
--   Inserts alerts into H2 database
--   Creates schema automatically
 
 ### 5.6 Swing UI
 
@@ -91,16 +87,15 @@ Contains:
 
 ------------------------------------------------------------------------
 
-# 6. Main Program Flow (Main.java)
+# 6. Main Program Flow (IDSDashboard.java)
 
 1.  Parse network interface from program argument
 2.  Load rules from `rules.json`
 3.  Initialize SignatureEngine
-4.  Setup H2 database
-5.  Start Swing GUI
-6.  Begin packet capture
-7.  Display and store alerts
-8.  Graceful shutdown
+4.  Start Swing GUI
+5.  Begin packet capture
+6.  Display and store alerts
+7.  Graceful shutdown
 
 ------------------------------------------------------------------------
 
