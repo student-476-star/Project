@@ -1,217 +1,311 @@
 # NetGuard-IDS --- Complete Documentation
 
-NetGuard-IDS is a lightweight Java-based Intrusion Detection System
-(IDS) featuring real-time packet capture, signature-based detection,
+NetGuard-IDS is a lightweight Java-based Intrusion Detection System (IDS) featuring real-time packet capture, signature-based detection,
 alert logging, an interactive Swing GUI dashboard, and persistent H2
 database storage.
 
 ------------------------------------------------------------------------
 
-# 1. Introduction
+## 1. Introduction
 
-NetGuard-IDS is a simplified IDS similar to Snort/Suricata.
-It captures packets from a selected network interface, analyzes them
-using signature rules, logs alerts, and displays them live in a
-user-friendly GUI.
-It is ideal for learning, research, academic submissions, and security
-demonstrations.
+Intrusion Detection Systems (IDS) are critical components of modern network security infrastructures. They continuously monitor network or system activity to identify malicious behavior, policy violations, or abnormal usage patterns. Traditional IDS solutions such as Snort and Suricata rely primarily on signature-based detection, while modern research increasingly focuses on hybrid approaches that combine signatures with behavioral or anomaly-based analysis.
 
-------------------------------------------------------------------------
+NetGuard-IDS is designed as an educational and research-oriented IDS framework that demonstrates core IDS concepts in a clean and understandable Java implementation. Rather than focusing solely on packet capture, NetGuard-IDS emphasizes the end-to-end detection pipeline:
 
-# 2. Objective
+traffic ingestion (live or simulated),
 
--   Capture live network packets
--   Detect suspicious activity based on signatures
--   Generate alerts for rule matches
--   Store alerts persistently
--   Display alerts in a real-time GUI
--   Export alerts for further analysis
+rule-based inspection,
 
-------------------------------------------------------------------------
+traffic profiling,
 
-# 3. Key Features
+alert generation,
 
--   ✔ Real-time network packet capture
--   ✔ Signature-based detection engine
--   ✔ Alerts saved in H2 database
--   ✔ Live Swing dashboard
--   ✔ CSV exporting
--   ✔ Modular and extendable codebase
+visualization, and
 
-------------------------------------------------------------------------
+reporting.
 
-# 4. Architecture Overview
-![alt text](flow.png)
-------------------------------------------------------------------------
+The project structure mirrors architectures described in academic IDS literature, where separation of concerns is a key principle. Detection logic, traffic handling, alert management, and user interaction are implemented as independent modules, allowing future extensions such as machine-learning-based detection, protocol-aware inspection, or distributed deployment.
 
-# 5. Project Modules
+NetGuard-IDS therefore serves both as:
 
-### 5.1 PcapCaptor
+a functional IDS prototype, and
 
--   Captures network packets
--   Extracts IP, ports, payload
--   Forwards packets to SignatureEngine
+a research platform for experimenting with detection techniques discussed in contemporary IDS publications.
 
-### 5.2 SignatureEngine
+## 2. Objective
 
--   Receives list of rules
--   Matches packets with patterns
--   Generates alerts
+Monitor incoming network or simulated traffic
 
-### 5.3 Rule Model
+Detect malicious or suspicious behavior using rules
 
-Represents a detection rule with:
+Identify abnormal traffic using profile-based thresholds
 
--   id
--   name
--   pattern
--   srcPort
--   dstPort
+Log and persist detected alerts
 
-### 5.4 Alert Model
+Provide authenticated access to the system
 
-Contains:
+Display alerts in real time using a GUI
 
--   ID
--   Rule ID
--   Rule name
--   Source/Destination info
--   Timestamp
--   Payload snippet
+Export detection results for offline analysis and reporting
 
+## 3. Key Features
 
-### 5.6 Swing UI
+✔ Modular IDS architecture
 
--   Displays real-time alerts in table
--   Allows CSV export
+✔ Rule-based detection engine
 
-------------------------------------------------------------------------
+✔ Traffic profiling & anomaly thresholds
 
-# 6. Main Program Flow (IDSDashboard.java)
+✔ Multi-threaded worker processing
 
-1.  Parse network interface from program argument
-2.  Load rules from `rules.json`
-3.  Initialize SignatureEngine
-4.  Start Swing GUI
-5.  Begin packet capture
-6.  Display and store alerts
-7.  Graceful shutdown
+✔ Swing-based monitoring dashboard
 
-------------------------------------------------------------------------
+✔ User authentication & settings management
 
-# 7. Rules Format Documentation (rules.json)
+✔ Alert logging and report exporting
 
-Example:
+## 4. Architecture Overview
 
-``` json
-[
-  {
-    "id": 10,
-    "name": "Suspicious HTTP Keyword",
-    "pattern": "malware",
-    "srcPort": 0,
-    "dstPort": 80
-  }
-]
-```
+NetGuard-IDS follows a layered IDS architecture, commonly described in IDS research, where each layer has a distinct responsibility.
 
--   `pattern` is matched inside payload
--   Ports = 0 means "ignore port"
+### 4.1 High-Level Architecture
+┌─────────────────────────────────────────────┐
+│                 Presentation Layer          │
+│                                             │
+│  IDSDashboard | IDSLogin | Settings Dialog  │
+│  (Visualization & Control)                  │
+└──────────────────────▲──────────────────────┘
+                       │
+┌──────────────────────┴──────────────────────┐
+│               Alert & Reporting Layer        │
+│                                             │
+│  IDSLogger | IDSReportExporter               │
+│  (Alert storage, export, reporting)          │
+└──────────────────────▲──────────────────────┘
+                       │
+┌──────────────────────┴──────────────────────┐
+│              Detection & Analysis Layer      │
+│                                             │
+│  IDSRuleEngine | TrafficProfile              │
+│  (Signature + profile-based detection)       │
+└──────────────────────▲──────────────────────┘
+                       │
+┌──────────────────────┴──────────────────────┐
+│              Processing & Control Layer      │
+│                                             │
+│  IDSServer | IDSWorker                       │
+│  (Task dispatching, multithreading)          │
+└──────────────────────▲──────────────────────┘
+                       │
+┌──────────────────────┴──────────────────────┐
+│               Traffic Source Layer           │
+│                                             │
+│  AttackSimulator | Live Capture (future)    │
+│  (Traffic input generation)                  │
+└─────────────────────────────────────────────┘
 
-------------------------------------------------------------------------
+### 4.2 Architectural Rationale
 
-# 8. Database Schema
+Layered separation improves maintainability and extensibility
 
-  ![alt text](database.png)
+Detection logic is isolated from UI and traffic ingestion
 
-------------------------------------------------------------------------
+Workers enable scalability, reflecting real IDS engines
 
-# 9. GUI Documentation
+Simulation support allows controlled testing of rules
 
-### GUI Features:
+Architecture aligns with hybrid IDS models described in IEEE literature
 
--   JTable showing:
-    `ID | Rule ID | Rule Name | Src IP | Src Port | Dst IP | Dst Port | Timestamp | Snippet`
--   Auto-sorting enabled
--   Export CSV button
+## 5. Project Modules
+### 5.1 IDSServer
 
-------------------------------------------------------------------------
+Central dispatcher of traffic events
 
-# 10. Installation Instructions
+Accepts traffic from simulators or capture modules
 
-### Requirements:
+Assigns tasks to worker threads
 
--   Java 17 or above
--   Maven
--   PCAP library:
-    -   Windows → npcap
-    -   Linux → libpcap
+Acts as the system’s control backbone
 
-------------------------------------------------------------------------
+### 5.2 IDSWorker
 
-# 11. Build Instructions
+Runs in parallel threads
 
-    mvn clean package
+Processes individual packets or traffic sessions
 
-Output JAR:
+Invokes rule engine and traffic profile checks
 
-    target/netguard-ids.jar
+Improves throughput and responsiveness
 
-------------------------------------------------------------------------
+### 5.3 IDSRuleEngine
 
-# 12. Running the Program
+Implements signature-based detection
 
-Linux:
+Matches patterns, keywords, or indicators
 
-    ip link show
+Core component for known attack detection
 
-Windows:
-Use npcap interface list.
+Easily extendable to regex or structured rules
 
-Run IDS:
+### 5.4 TrafficProfile
 
-    java -jar netguard-ids.jar eth0
+Maintains baseline behavior statistics
 
-------------------------------------------------------------------------
+Detects deviations from normal traffic patterns
 
-# 13. CSV Export
+Represents anomaly-based detection concepts
 
-GUI → "Export CSV" button saves file to:
+Supports threshold-based alerts
 
-    ~/netguard_alerts_export.csv
+### 5.5 AttackSimulator
 
-------------------------------------------------------------------------
+Generates synthetic attack traffic
 
-# 14. Packet Capturing Workflow
+Enables repeatable testing of detection logic
 
-1.  Open NIC in promiscuous mode
-2.  Capture packets continuously
-3.  Parse IP, ports, payload
-4.  Send payload to SignatureEngine
-5.  Trigger alert on match
+Useful for academic demonstrations and evaluations
 
-------------------------------------------------------------------------
+### 5.6 IDSLogger
 
-# 15. Signature Engine Workflow
+Centralized alert logging
 
-1.  Receive payload
-2.  Loop rules
-3.  Check port match
-4.  Check pattern match
-5.  Create alert
-6.  Add to DB + GUI
+Records timestamps, rule matches, sources, and descriptions
 
-------------------------------------------------------------------------
+Supports file-based or future database storage
 
-# 16. Future Enhancements
+### 5.7 IDSDashboard
 
--   Severity levels for rules
--   Regex-based rule matching
--   Snort-rule compatibility
--   Protocol-based filters
--   Real-time charts
--   REST API for alert retrieval
--   Auto rule updates
--   TLS fingerprinting
+Swing-based graphical interface
 
-------------------------------------------------------------------------
+Displays alerts in real time
+
+Shows system status and logs
+
+Entry point for analysts and users
+
+### 5.8 IDSLogin & IDSSettingsDialog
+
+User authentication mechanism
+
+Restricts system access
+
+Allows runtime configuration updates
+
+### 5.9 IDSReportExporter
+
+Exports alerts to CSV or text formats
+
+Enables offline analysis and reporting
+
+Suitable for academic submissions and audits
+
+## 6. Main Program Flow (IDSDashboard.java)
+
+User authenticates via IDSLogin
+
+Configuration is loaded using IDSConfig
+
+IDSServer initializes worker threads
+
+Traffic source (simulator or capture) starts
+
+Workers analyze traffic via IDSRuleEngine
+
+TrafficProfile checks anomalies
+
+Alerts generated and logged
+
+Dashboard updates in real time
+
+Reports exported on demand
+
+## 7. Rules & Configuration Format
+
+Example conceptual rule:
+
+{
+  "id": 101,
+  "name": "Brute Force Attempt",
+  "pattern": "failed_login",
+  "threshold": 10,
+  "protocol": "TCP"
+}
+
+
+pattern: signature indicator
+
+threshold: anomaly trigger value
+
+protocol: protocol filter
+
+## 8. Logging & Persistence
+
+Alerts stored in log files (e.g., ids_log.txt)
+
+Each entry includes:
+
+Timestamp
+
+Rule name
+
+Source / destination
+
+Description
+
+Design supports future database integration
+
+## 9. GUI Documentation
+Dashboard Features
+
+Alert table with sorting
+
+Real-time updates
+
+Authentication screen
+
+Settings configuration dialog
+
+Export controls
+
+## 10. Detection Workflows
+Signature-Based Detection
+
+Extract traffic features
+
+Match against rules
+
+Trigger alert on match
+
+Profile-Based Detection
+
+Build baseline traffic profile
+
+Monitor deviations
+
+Trigger anomaly alert
+
+## 11. Research Alignment
+
+NetGuard-IDS reflects IDS research principles:
+
+Hybrid detection (signature + anomaly)
+
+Modular, layered design
+
+Separation of analysis and visualization
+
+Support for experimentation and extension
+
+## 12. Future Enhancements
+
+Machine-learning classifiers
+
+Live packet capture integration
+
+Distributed IDS nodes
+
+Snort/YARA rule compatibility
+
+Real-time traffic graphs
+
+REST API access
